@@ -22,6 +22,7 @@ need to decide what kind of caching you want:
 
 Example usage
 -------------
+```text
 <?php
 # Include the main file
 require_once(dirname(__file__) . '/CompetitieBeheer-php-api/CompetitieBeheer.php');
@@ -43,3 +44,4 @@ $api = new CompetitieBeheer($cache, $clubId, $clubHash);
 # Now you can use the API, for example to get a list of teams
 $teams = $api->getTeams();
 ?>
+```
