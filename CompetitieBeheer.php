@@ -31,14 +31,28 @@ class CompetitieBeheer {
 
     const BASE_URL = 'http://feeds.competitiebeheer.nl/';
 
+    /**
+     * Holds the cache implementation we should use to cache the results of the requests.
+     * @var Cache
+     */
     private $cache;
+    
+    /**
+     * Holds the club id of the account we should use to query CBT.
+     * @var integer
+     */
     private $clubId;
+    
+    /**
+     * Holds the club hash of the account we should use to query CBT.
+     * @var string
+     */
     private $clubHash;
 
     /**
-     * @param type $cache De cache variant die we willen gebruiken
-     * @param integer $clubId Het id van de club (kan gevonden worden bij “mijn club”)
-     * @param string $clubHash De hash van de club (kan gevonden worden bij “mijn club”)
+     * @param Cache $cache The cache variant we want to use for caching results
+     * @param integer $clubId The id of your club (can be obtained with the CompetitieBeheer tool by going to “mijn club”)
+     * @param string $clubHash The hash of your club (can be obtained with the CompetitieBeheer tool by going to “mijn club”)
      */
     public function __construct($cache, $clubId, $clubHash) {
         $this->cache = $cache;
@@ -51,15 +65,15 @@ class CompetitieBeheer {
     }
 
     /**
-     * Geeft wedstrijden terug, gefiltered op een aantal input parameters.
+     * Returns all matches, filtered on a number of input parameters.
      * 
-     * Een competitie-id óf team-id is verplicht in op te geven btw (naast het clubid& clubhash).
+     * Either parameter $teamId or $competitieId is mandatory.
      * 
      * @param integer $teamId Het id van het team waar je wedstrijden van wilt opvragen. Hiermee kun je dus specifiek voor 1 team wedstrijden opvragen. Dit kan gevonden worden bij “mijn teams”. Let op dat je via de column-chooser de ID-column even actief moet maken (http://www.competitiebeheer.nl/index.php/videos/104-kolommen-beheren-en-exporteren)
      * @param integer $competitieId Het id van de competitie. Hiermee kun je van een competitie alle wedstrijden opvragen dus ook wedstrijden van andere teams in desbetreffende competitie. Dit id kan gevonden worden bij “mijn competities”. Ook hiervoor geldt dat dit via de column-chooser gekozen moet worden.
      * @param boolean $afgelast Hiermee geef je aan of je afgelaste wedstrijden wilt zien of juist niet afgelaste wedstrijden. Als je deze parameter niet invult krijg je afgelaste wedstrijden en niet afgelaste wedstrijden door elkaar. (parameter is optioneel)
-     * @param string? $datumVanaf Kan worden gebruikt om wedstrijden op te halen in een specifieke datum-range. (parameter is optioneel)
-     * @param string? $datumTot Kan worden gebruikt om wedstrijden op te halen in een specifieke datum-range. (parameter is optioneel)
+     * @param date $datumVanaf Kan worden gebruikt om wedstrijden op te halen in een specifieke datum-range. (parameter is optioneel)
+     * @param date $datumTot Kan worden gebruikt om wedstrijden op te halen in een specifieke datum-range. (parameter is optioneel)
      * @param boolean $bevatOfficieleUitslag Hiermee geef je aan of je alleen wedstrijden wilt terugkrijgen die een officiele uitslag hebben. Officiele uitslagen zijn uitslagen die via voetbal.nl zijn binnengekomen. Hiermee kun je dus feitelijk een uitslagen overzicht maken. (parameter is optioneel)
      * @param boolean $bevatUitslagen Hiermee geef je aan of je alleen wedstrijden wilt terugkrijgen die een on-officiele uitslagen hebben. On-officele uitslagen zijn uitslagen die bijvoorbeeld via twitter zijn binnengekomen. Deze gebruik ik bijvoorbeeld om realtime-virtuele-standen te genereren. (parameter is optioneel)
      * @return Match[] array of Match instances 
@@ -71,7 +85,6 @@ class CompetitieBeheer {
             throw new Exception("Either teamId or competitieId should be given");
         }
 
-        // Build the URL
         $url = self::BASE_URL . "/Wedstrijden.svc/?clubid=$this->clubId&clubhash=$this->clubHash";
         if ($teamId !== null)
             $url .= "&teamid=$teamId";
@@ -99,9 +112,9 @@ class CompetitieBeheer {
         return $result;
     }
 
-    public function getRanking($teamId) {
-        // http://feeds.competitiebeheer.nl/Standen.svc/?clubid={clubid}&clubhash={clubhash}&teamid={teamid}
-        $url = self::BASE_URL . "/Standen.svc/?clubid=$this->clubId&clubhash=$this->clubHash&teamid=$teamId";
+    public function getRanking($competitionId) {
+        // http://feeds.competitiebeheer.nl/Standen.svc/?clubid={clubid}&clubhash={clubhash}&competitieid={teamid}
+        $url = self::BASE_URL . "/Standen.svc/?clubid=$this->clubId&clubhash=$this->clubHash&competitieid=$competitionId";
         $xml = $this->cache->retrieveUrl($url);
         $xml = new SimpleXMLElement($xml);
 
