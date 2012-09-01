@@ -26,6 +26,7 @@ require_once(dirname(__file__) . '/dto/Rank.php');
 require_once(dirname(__file__) . '/dto/Speler.php');
 require_once(dirname(__file__) . '/dto/Entiteit.php');
 require_once(dirname(__file__) . '/dto/Competitie.php');
+require_once(dirname(__file__) . '/dto/Uitslag.php');
 
 class CompetitieBeheer {
 
@@ -246,7 +247,7 @@ class CompetitieBeheer {
         $lastModifiedUser = (string) $xmlMatch->LASTMODIFIEDUSER_USERNAME;
         $scheidsrechter = (string) $xmlMatch->SCHEIDSRECHTER;
         $thuisTeam = $this->parseTeam($xmlMatch->THUIS_TEAM);
-        $uitslag = (string) $xmlMatch->UITSLAG;
+        $uitslag = $this->parseUitslag($xmlMatch->UITSLAG);
         $uitTeam = $this->parseTeam($xmlMatch->UIT_TEAM);
         $veld = (string) $xmlMatch->VELD;
         $verzameltijd = (string) $xmlMatch->VERZAMELTIJD;
@@ -255,6 +256,17 @@ class CompetitieBeheer {
         $vrijveld3 = (string) $xmlMatch->VRIJVELD3;
         $wedstrijdType = (string) $xmlMatch->WEDSTRIJDTYPEENUM;
         return new Wedstrijd($accomodatie, $afgelast, $bijzonderheden, $datum, $id, $kleedkamer, $lastModifiedDate, $lastModifiedUser, $scheidsrechter, $thuisTeam, $uitslag, $uitTeam, $veld, $verzameltijd, $vrijveld1, $vrijveld2, $vrijveld3, $wedstrijdType);
+    }
+
+    private function parseUitslag($xmlUitslag) {
+        $doelpunten_thuisteam = (string) $xmlUitslag->DOELPUNTEN_THUISTEAM;
+        $doelpunten_uitteam = (string) $xmlUitslag->DOELPUNTEN_UITTEAM;
+        $id = (string) $xmlUitslag->ID;
+        $laatstbijgewerkt = Utils::ISO8601Date2UnixTimestamp($xmlEntity->LAATSTBIJGEWERKT);
+        $officieel = Utils::string2Boolean($xmlUitslag->OFFICIEEL);
+        $source = (string) $xmlUitslag->SOURCE;
+        $wedstrijd_id = (string) $xmlUitslag->WEDSTRIJD_ID;
+        return new Uitslag($doelpunten_thuisteam, $doelpunten_uitteam, $id, $laatstbijgewerkt, $officieel, $source, $wedstrijd_id);
     }
 
     private function parseTeam($xmlTeam) {
