@@ -242,7 +242,8 @@ class CompetitieBeheer {
         $bijzonderheden = (string) $xmlMatch->BIJZONDERHEDEN;
         $datum = Utils::ISO8601Date2UnixTimestamp($xmlMatch->DATUM);
         $id = (string) $xmlMatch->ID;
-        $kleedkamer = (string) $xmlMatch->KLEEDKAMER;
+        $kleedkamerThuis = (string) $xmlMatch->KLEEDKAMER_THUIS;
+        $kleedkamerUit = (string) $xmlMatch->KLEEDKAMER_UIT;
         $lastModifiedDate = Utils::ISO8601Date2UnixTimestamp($xmlMatch->LASTMODIFIEDDATE);
         $lastModifiedUser = (string) $xmlMatch->LASTMODIFIEDUSER_USERNAME;
         $scheidsrechter = (string) $xmlMatch->SCHEIDSRECHTER;
@@ -254,8 +255,7 @@ class CompetitieBeheer {
         $vrijveld1 = (string) $xmlMatch->VRIJVELD1;
         $vrijveld2 = (string) $xmlMatch->VRIJVELD2;
         $vrijveld3 = (string) $xmlMatch->VRIJVELD3;
-        $wedstrijdType = (string) $xmlMatch->WEDSTRIJDTYPEENUM;
-        return new Wedstrijd($accomodatie, $afgelast, $bijzonderheden, $datum, $id, $kleedkamer, $lastModifiedDate, $lastModifiedUser, $scheidsrechter, $thuisTeam, $uitslag, $uitTeam, $veld, $verzameltijd, $vrijveld1, $vrijveld2, $vrijveld3, $wedstrijdType);
+        return new Wedstrijd($accomodatie, $afgelast, $bijzonderheden, $datum, $id, $kleedkamerThuis, $kleedkamerUit, $lastModifiedDate, $lastModifiedUser, $scheidsrechter, $thuisTeam, $uitslag, $uitTeam, $veld, $verzameltijd, $vrijveld1, $vrijveld2, $vrijveld3);
     }
 
     private function parseUitslag($xmlUitslag) {

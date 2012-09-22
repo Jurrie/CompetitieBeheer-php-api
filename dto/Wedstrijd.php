@@ -26,7 +26,8 @@ class Wedstrijd {
     public $bijzonderheden;
     public $datum;
     public $id;
-    public $kleedkamer;
+    public $kleedkamerThuis;
+    public $kleedkamerUit;
     public $lastModifiedDate;
     public $lastModifiedUser;
     public $scheidsrechter;
@@ -38,15 +39,15 @@ class Wedstrijd {
     public $vrijveld1;
     public $vrijveld2;
     public $vrijveld3;
-    public $wedstrijdType;
 
-    public function __construct($accomodatie, $afgelast, $bijzonderheden, $datum, $id, $kleedkamer, $lastModifiedDate, $lastModifiedUser, $scheidsrechter, $thuisTeam, $uitslag, $uitTeam, $veld, $verzameltijd, $vrijveld1, $vrijveld2, $vrijveld3, $wedstrijdType) {
+    public function __construct($accomodatie, $afgelast, $bijzonderheden, $datum, $id, $kleedkamerThuis, $kleedkamerUit, $lastModifiedDate, $lastModifiedUser, $scheidsrechter, $thuisTeam, $uitslag, $uitTeam, $veld, $verzameltijd, $vrijveld1, $vrijveld2, $vrijveld3) {
         $this->accomodatie = $accomodatie;
         $this->afgelast = $afgelast;
         $this->bijzonderheden = $bijzonderheden;
         $this->datum = $datum;
         $this->id = $id;
-        $this->kleedkamer = $kleedkamer;
+        $this->kleedkamerThuis = $kleedkamerThuis;
+        $this->kleedkamerUit = $kleedkamerUit;
         $this->lastModifiedDate = $lastModifiedDate;
         $this->lastModifiedUser = $lastModifiedUser;
         $this->scheidsrechter = $scheidsrechter;
@@ -58,7 +59,6 @@ class Wedstrijd {
         $this->vrijveld1 = $vrijveld1;
         $this->vrijveld2 = $vrijveld2;
         $this->vrijveld3 = $vrijveld3;
-        $this->wedstrijdType = $wedstrijdType;
     }
 
 }
