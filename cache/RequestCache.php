@@ -19,7 +19,7 @@
  * along with CompetitieBeheer-php-api. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-require_once('Cache.php');
+require_once(dirname(__file__) . '/Cache.php');
 
 /**
  * This is a Cache implementation that keeps the requested data in memory for the duration of this request.

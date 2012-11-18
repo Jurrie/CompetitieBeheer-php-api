@@ -19,7 +19,7 @@
  * along with CompetitieBeheer-php-api. If not, see
  * <http://www.gnu.org/licenses/>.
  */
-require_once('Cache.php');
+require_once(dirname(__file__) . '/Cache.php');
 
 /**
  * This is a Cache implementation that actually does NOT do caching at all.

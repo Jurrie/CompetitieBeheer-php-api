@@ -27,6 +27,7 @@ require_once(dirname(__file__) . '/dto/Speler.php');
 require_once(dirname(__file__) . '/dto/Entiteit.php');
 require_once(dirname(__file__) . '/dto/Competitie.php');
 require_once(dirname(__file__) . '/dto/Uitslag.php');
+require_once(dirname(__file__) . '/dto/Club.php');
 
 class CompetitieBeheer {
 
@@ -49,16 +50,39 @@ class CompetitieBeheer {
      * @var string
      */
     private $clubHash;
+    
+    /**
+     * Holds the user id of the accoutn we should use to query CBT.
+     * @var integer
+     */
+    private $userId;
 
     /**
+     * Constructs a new CompetitieBeheer object.
+     * You should either use the $clubId and $clubHash variables, or the $userId variable. Set the others to NULL.
      * @param Cache $cache The cache variant we want to use for caching results
      * @param integer $clubId The id of your club (can be obtained with the CompetitieBeheer tool by going to “mijn club”)
      * @param string $clubHash The hash of your club (can be obtained with the CompetitieBeheer tool by going to “mijn club”)
      */
-    public function __construct($cache, $clubId, $clubHash) {
+    public function __construct($cache, $clubId = null, $clubHash = null, $userId = null) {
+        if (($clubId !== NULL && $clubHash == NULL) || ($clubId === NULL && $clubHash !== NULL))
+        {
+            throw new Exception("Please give both clubId and clubHash, not just one");
+        }
+        if ($clubId === NULL && $userId === NULL)
+        {
+            throw new Exception("You need to give the clubId and clubHash combination, or the userId");
+        }
+        else if ($clubId !== NULL && $userId !== NULL)
+        {
+            throw new Exception("You need to give either the clubId and clubHash combination, or the userId, but not both");
+        }
+        // If we are here, either $clubId+$clubHash is set, or $userId
+        
         $this->cache = $cache;
         $this->clubId = $clubId;
         $this->clubHash = $clubHash;
+        $this->userId = $userId;
     }
 
     public function getCache() {
@@ -86,7 +110,7 @@ class CompetitieBeheer {
             throw new Exception("Either teamId or competitieId should be given");
         }
 
-        $url = self::BASE_URL . "/Wedstrijden.svc/?clubid=$this->clubId&clubhash=$this->clubHash";
+        $url = self::BASE_URL . "/Wedstrijden.svc/?".$this->getClubOrUserId();
         if ($teamId !== null)
             $url .= "&teamid=$teamId";
         if ($competitieId !== null)
@@ -115,7 +139,7 @@ class CompetitieBeheer {
 
     public function getRanking($competitionId) {
         // http://feeds.competitiebeheer.nl/Standen.svc/?clubid={clubid}&clubhash={clubhash}&competitieid={teamid}
-        $url = self::BASE_URL . "/Standen.svc/?clubid=$this->clubId&clubhash=$this->clubHash&competitieid=$competitionId";
+        $url = self::BASE_URL . "/Standen.svc/?".$this->getClubOrUserId()."&competitieid=$competitionId";
         $xml = $this->cache->retrieveUrl($url);
         $xml = new SimpleXMLElement($xml);
 
@@ -135,7 +159,7 @@ class CompetitieBeheer {
     public function getTeams($archived = false) {
         // http://feeds.competitiebeheer.nl/Teams.svc/?clubid={clubid}&clubhash={clubhash}&archived={true/false}
         // Parameter archived is mandatory
-        $url = self::BASE_URL . "/Teams.svc/?clubid=".$this->clubId."&clubhash=".$this->clubHash;
+        $url = self::BASE_URL . "/Teams.svc/?".$this->getClubOrUserId();
         if ($archived === true)
             $url .= "&archived=true";
         else
@@ -160,7 +184,7 @@ class CompetitieBeheer {
      */
     public function getTeam($teamId, $archived = false) {
         // http://feeds.competitiebeheer.nl/Teams.svc/Team/{teamid}?clubid={clubid}&clubhash={clubhash}&archived={true/false}
-        $url = self::BASE_URL . "/Teams.svc/Team/".$teamId."?clubid=".$this->clubId."&clubhash=".$this->clubHash;
+        $url = self::BASE_URL . "/Teams.svc/Team/".$teamId."?".$this->getClubOrUserId();
         if ($archived === true)
             $url .= "&archived=true";
         else
@@ -180,7 +204,7 @@ class CompetitieBeheer {
     
     public function getPlayers($teamId) {
         // http://feeds.competitiebeheer.nl/Spelers.svc/?clubid={clubid}&clubhash={clubhash}&teamId={teamid}
-        $url = self::BASE_URL . "/Spelers.svc/?clubid=$this->clubId&clubhash=$this->clubHash&teamid=$teamId";
+        $url = self::BASE_URL . "/Spelers.svc/?".$this->getClubOrUserId()."&teamid=$teamId";
         $xml = $this->cache->retrieveUrl($url);
         $xml = new SimpleXMLElement($xml);
 
@@ -194,7 +218,7 @@ class CompetitieBeheer {
 
     public function getPlayer($playerId) {
         // http://feeds.competitiebeheer.nl/Spelers.svc/Speler/{playerid}?clubid={clubid}&clubhash={clubhash}
-        $url = self::BASE_URL . "/Spelers.svc/Speler/".$playerId."?clubid=$this->clubId&clubhash=$this->clubHash";
+        $url = self::BASE_URL . "/Spelers.svc/Speler/".$playerId."?".$this->getClubOrUserId();
         $xml = $this->cache->retrieveUrl($url);
         if ($xml === null)
         {
@@ -209,7 +233,7 @@ class CompetitieBeheer {
     
     public function getCompetitions($seasonStartYear) {
         // http://feeds.competitiebeheer.nl/Competities.svc/?clubid={clubid}&clubhash={clubhash}&seizoenstartjaar={year}
-        $url = self::BASE_URL . "/Competities.svc/?clubid=$this->clubId&clubhash=$this->clubHash&seizoenstartjaar=$seasonStartYear";
+        $url = self::BASE_URL . "/Competities.svc/?".$this->getClubOrUserId()."&seizoenstartjaar=$seasonStartYear";
         $xml = $this->cache->retrieveUrl($url);
         $xml = new SimpleXMLElement($xml);
 
@@ -223,7 +247,7 @@ class CompetitieBeheer {
     
     public function getCompetition($competitionId) {
         // http://feeds.competitiebeheer.nl/Competities.svc/Speler/{competitionid}?clubid={clubid}&clubhash={clubhash}
-        $url = self::BASE_URL . "/Competities.svc/Speler/".$competitionId."?clubid=$this->clubId&clubhash=$this->clubHash";
+        $url = self::BASE_URL . "/Competities.svc/Speler/".$competitionId."?".$this->getClubOrUserId();
         $xml = $this->cache->retrieveUrl($url);
         if ($xml === null)
         {
@@ -234,6 +258,31 @@ class CompetitieBeheer {
 
         $competition = $this->parseCompetition($xml->content->Competitie);
         return $competition;
+    }
+    
+    /**
+     * Returns the clubs this account is linked to, or the clubs that have a given string in their name.
+     * @param String $like the part of the club name that we want to search for. set to NULL to get the clubs this account is linked to.
+     * @return Club[] an array of found Club instances
+     */
+    public function getClubs($like = NULL) {
+        if ($like === NULL) {
+            // http://feeds.competitiebeheer.nl/clubs.svc/?clubid={clubid}&clubhash={clubhash}
+            $url = self::BASE_URL . "/clubs.svc/?".$this->getClubOrUserId();
+        } else {
+            // http://feeds.competitiebeheer.nl/ClubSearch.svc/?clubid={clubid}&clubhash={clubhash}&likename={likename}
+            $url = self::BASE_URL . "/ClubSearch.svc/?".$this->getClubOrUserId()."&likename=".$like;
+        }
+
+        $xml = $this->cache->retrieveUrl($url);
+        $xml = new SimpleXMLElement($xml);
+
+        $result = array();
+        foreach ($xml->entry as $xmlEntry) {
+            $club = $this->parseClub($xmlEntry->content->Club);
+            $result[] = $club;
+        }
+        return $result;
     }
 
     private function parseMatch($xmlMatch) {
@@ -340,6 +389,31 @@ class CompetitieBeheer {
         $seizoenBeginJaar = (string) $xmlEntity->SEIZOEN_BEGIN_JAAR;
         $seizoenEindJaar = (string) $xmlEntity->SEIZOEN_EIND_JAAR;
         return new Competitie($amatweetId, $competitieType, $competitieAanduidingId, $competitieDistrictId, $competitieKlasseId, $competitiePouleId, $createdDate, $handmatig, $id, $knvbId, $knvbNaam, $lastModifiedUserId, $naam, $scoreflashId, $seizoenBeginJaar, $seizoenEindJaar);
+    }
+    
+    private function parseClub($xmlEntity) {
+        $adres = (string) $xmlEntity->ADRES;
+        $cbtTenueUrl = (string) $xmlEntity->CBT_TENUE_URL;
+        $emailAdresAlgemeen = (string) $xmlEntity->EMAILADRES_ALGEMEEN;
+        $emailAdresPenningmeester = (string) $xmlEntity->EMAILADRES_PENNINGMEESTER;
+        $id = (string) $xmlEntity->ID;
+        $logo = (string) $xmlEntity->LOGO;
+        $naam = (string) $xmlEntity->NAAM;
+        $plaats = (string)$xmlEntity->PLAATS;
+        $postcode = (string)$xmlEntity->POSTCODE;
+        $telefoon = (string) $xmlEntity->TELEFOON;
+        $urlRoute = (string) $xmlEntity->URL_ROUTE;
+        $urlTenue = (string)$xmlEntity->URL_TENUE;
+        $urlWebsite = (string) $xmlEntity->URL_WEBSITE;
+        return new Club($adres, $cbtTenueUrl, $emailAdresAlgemeen, $emailAdresPenningmeester, $id, $logo, $naam, $plaats, $postcode, $telefoon, $urlRoute, $urlTenue, $urlWebsite);
+    }
+
+    private function getClubOrUserId() {
+        if ($this->userId === NULL) {
+            return "clubid=" . $this->clubId . "&clubhash=" . $this->clubHash;
+        } else {
+            return "userid=" . $this->userId;
+        }
     }
 
 }
